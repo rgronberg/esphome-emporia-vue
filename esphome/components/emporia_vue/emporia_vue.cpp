@@ -85,6 +85,8 @@ void PhaseConfig::update_from_reading(const SensorReading &sensor_reading) {
 }
 
 int32_t PhaseConfig::extract_power_for_phase(const ReadingPowerEntry &power_entry) {
+  return power_entry.phase_black;
+
   switch (this->input_wire_) {
     case PhaseInputWire::BLACK:
       return power_entry.phase_black;
@@ -103,6 +105,12 @@ void CTClampConfig::update_from_reading(const SensorReading &sensor_reading) {
     ReadingPowerEntry power_entry = sensor_reading.power[this->input_port_];
     int32_t raw_power = this->phase_->extract_power_for_phase(power_entry);
     float calibrated_power = this->get_calibrated_power(raw_power);
+    ESP_LOGD(TAG, "input port: %d, phase_black: %f, phase_red: %f, phase_blue: %f, calibrated_power: %f",
+             this->input_port_,
+             this->get_calibrated_power(power_entry.phase_black),
+             this->get_calibrated_power(power_entry.phase_red),
+             this->get_calibrated_power(power_entry.phase_blue),
+             calibrated_power);
     this->power_sensor_->publish_state(calibrated_power);
   }
   if (this->current_sensor_) {
